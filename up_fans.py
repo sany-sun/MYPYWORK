@@ -4,7 +4,7 @@ import time
 import xlwt
 from bs4 import BeautifulSoup
 from lxml import etree
-from collections import Counter
+
 # 获取网页函数
 def gethtml(url):
     try:
@@ -19,9 +19,8 @@ def gethtml(url):
     except:
         print(r.status_code)
 
-def hot_list():
+def b_hot_list():
     index = input("请输入你想要查询的榜单类型：1.全站，2.国产，3.国创相关，4.纪录片，5.动画，6.音乐，7.舞蹈，8.游戏，9.知识，10.科技，11.体育，12.汽车，13.生活，14.动物圈，15.鬼畜，16.时尚，17.娱乐，18.影视，19.电影，20电视剧，21.原创，22.新人:\n")
-
     h_list = ["all", "bangumi", "guochan", "guochuang", "documentary", "douga", "music", "dance", "game", "knowledge", "tech", "life", "food", "animal", "kichiku", "fashion", "ent", "cinephile", "movie", "tv", "origin", "rookie"]
     html = gethtml('https://www.bilibili.com/v/popular/rank/'+h_list[int(index)-1])
     soup = BeautifulSoup(html, "html.parser")
@@ -29,26 +28,39 @@ def hot_list():
     j = 1
     result = etree.HTML(html, etree.HTMLParser())
     sco_item = result.xpath('//div[@class="pts"]/div//text()')
-    all_in = {
-        'title': tit_item,
-        'score': result
-    }
+    link_item = result.xpath('//div[@class="info"]/a[@class="title"]//@href')
+    # all_in = {
+    #     'title': tit_item,
+    #     'score': result
+    # }
     print("序号     " + "     标题     " + "               评分     ")
     for i in tit_item:
         i = str(i)
         find_title = re.compile('>(.*?)</a>')
         h = re.findall(find_title, i)
-        print(str(j)+"   "+str(h)+"   "+str(sco_item[j-1])+"   ")
+        print(str(j)+"   "+str(h)+"   "+str(sco_item[j-1])+"   "+"https://"+str(link_item[j-1])[2:])
         j = j+1
 
+#知乎
 
+def z_hot_list():
+    index = input("请输入你要查询了的榜单类型：1.全站,2.科学,3.数码,4.体育,5.时尚,6.电影,7.校园,8.车车,9.国际,10.时事")
+    h_list = ["", "?list=science", "?list=digital", "?list=sport", "?list=fashion", "?list=film", "?list=school", "?list=car", "?list=focus", "?list=depth"]
+    html = gethtml("https://www.zhihu.com/hot"+h_list[int(index)-1])
+    result = etree.HTML(html, etree.HTMLParser())
+    tit_item = result.xpath('//h2[@class="HotItem-title"]//text()')
+    link_item = result.xpath('//div[@class="HotItem-content"]/a/@href')
+    j = 1
+    print("序号        名称       链接")
+    for item in tit_item:
+        print(str(j)+" "+item+" "+link_item[j-1])
+        j = j+1
 
 def up_fans():
     def interception(html):
             hk = re.compile('"follower":(.*?)}}')
             fans_num = re.findall(hk, str(html))
             return fans_num[0]
-
     def query():
         uid = input("请输入您想查询的up主的uid：")
         link = "https://api.bilibili.com/x/relation/stat?vmid="+uid+"&jsonp=jsonp"
@@ -66,7 +78,7 @@ def up_fans():
             else:
                 print("实时掉粉:", m-i)
                 print("当前粉丝数：", i)
-            time.sleep(1)
+            time.sleep(5)
             m = i
     query()
 
@@ -75,7 +87,9 @@ def switcher(s_index):
         if s_index == 1:
             up_fans()
         elif s_index == 2:
-            hot_list()
+            b_hot_list()
+        elif s_index == 3:
+            z_hot_list()
 
 
 def main():
